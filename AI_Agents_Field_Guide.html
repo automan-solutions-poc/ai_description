@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GenAI → Agents → Agentic AI — A Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --ink:#0B0E14;
+  --ink-2:#10141d;
+  --panel:#141925;
+  --panel-2:#191f2c;
+  --line: rgba(237,239,244,0.09);
+  --line-strong: rgba(237,239,244,0.16);
+  --text:#EDEFF4;
+  --text-dim:#A8AFC0;
+  --text-faint:#6B7280;
+  --cyan:#5EE6D9;
+  --cyan-dim: rgba(94,230,217,0.14);
+  --amber:#F2A33D;
+  --amber-dim: rgba(242,163,61,0.14);
+  --violet:#9D8CFF;
+  --violet-dim: rgba(157,140,255,0.14);
+
+  --display: "Space Grotesk", sans-serif;
+  --body: "Inter", sans-serif;
+  --mono: "JetBrains Mono", monospace;
+
+  --maxw: 1180px;
+  --radius: 14px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:var(--body);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--cyan); color:#06110f;}
+
+a{color:inherit;}
+img{max-width:100%;display:block;}
+
+.wrap{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 32px;
+}
+
+/* focus visibility */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible{
+  outline:2px solid var(--cyan);
+  outline-offset:3px;
+  border-radius:4px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+}
+
+/* ============================================================
+   BACKGROUND TEXTURE — faint circuit grid
+   ============================================================ */
+.bg-grid{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(237,239,244,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237,239,244,0.025) 1px, transparent 1px);
+  background-size:64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+}
+.bg-glow{
+  position:fixed; top:-20%; left:50%; transform:translateX(-50%);
+  width:1100px; height:700px; z-index:0; pointer-events:none;
+  background: radial-gradient(circle, rgba(94,230,217,0.10), transparent 65%);
+  filter:blur(20px);
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{
+  position:sticky; top:0; z-index:50;
+  background:rgba(11,14,20,0.78);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{
+  max-width:var(--maxw); margin:0 auto; padding:16px 32px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+}
+.brand{
+  font-family:var(--mono); font-size:13px; letter-spacing:0.04em;
+  color:var(--text); display:flex; align-items:center; gap:10px;
+  text-decoration:none;
+}
+.brand-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 0 4px var(--cyan-dim);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{ box-shadow:0 0 0 4px var(--cyan-dim); }
+  50%{ box-shadow:0 0 0 8px var(--cyan-dim); }
+}
+.nav-links{
+  display:flex; gap:28px; list-style:none;
+  font-size:14px; color:var(--text-dim);
+}
+.nav-links a{ text-decoration:none; transition:color .2s; position:relative; }
+.nav-links a:hover{ color:var(--text); }
+.nav-cta{
+  font-family:var(--mono); font-size:12px; padding:8px 14px;
+  border:1px solid var(--line-strong); border-radius:8px;
+  color:var(--text); text-decoration:none; white-space:nowrap;
+  transition: border-color .2s, background .2s;
+}
+.nav-cta:hover{ border-color:var(--cyan); background:var(--cyan-dim); }
+.nav-toggle{ display:none; }
+
+@media (max-width:880px){
+  .nav-links{ display:none; }
+  .nav-toggle{ display:block; background:none; border:1px solid var(--line-strong); color:var(--text); border-radius:8px; padding:8px 10px; font-family:var(--mono); font-size:12px;}
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  position:relative; z-index:1;
+  padding:96px 32px 60px;
+  max-width:var(--maxw); margin:0 auto;
+  display:grid; grid-template-columns: 1.1fr 0.9fr; gap:48px; align-items:center;
+}
+@media (max-width: 980px){
+  .hero{ grid-template-columns:1fr; padding-top:56px; }
+}
+
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--mono); font-size:12px; letter-spacing:0.06em;
+  color:var(--cyan); text-transform:uppercase;
+  border:1px solid rgba(94,230,217,0.3); background:var(--cyan-dim);
+  padding:6px 12px; border-radius:100px; margin-bottom:22px;
+}
+
+.hero h1{
+  font-family:var(--display); font-weight:600;
+  font-size:clamp(36px, 5.4vw, 64px); line-height:1.04;
+  letter-spacing:-0.01em;
+  margin-bottom:22px;
+}
+.hero h1 .grad{
+  background:linear-gradient(100deg, var(--cyan), var(--violet) 60%, var(--amber));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero p.lead{
+  font-size:18px; color:var(--text-dim); max-width:520px; margin-bottom:32px;
+}
+.hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:36px; }
+.btn{
+  font-family:var(--body); font-weight:600; font-size:14.5px;
+  padding:13px 22px; border-radius:10px; text-decoration:none;
+  display:inline-flex; align-items:center; gap:8px;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.btn-primary{
+  background:var(--cyan); color:#06110f;
+  box-shadow:0 0 0 0 rgba(94,230,217,0.5);
+}
+.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 8px 24px -8px rgba(94,230,217,0.6); }
+.btn-ghost{
+  border:1px solid var(--line-strong); color:var(--text);
+}
+.btn-ghost:hover{ border-color:var(--text-dim); transform:translateY(-2px); }
+
+.hero-stats{ display:flex; gap:32px; flex-wrap:wrap; }
+.hero-stat .num{ font-family:var(--display); font-size:26px; color:var(--text); }
+.hero-stat .lbl{ font-family:var(--mono); font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; }
+
+/* ---- Hero loop diagram (the thesis) ---- */
+.loop-card{
+  position:relative;
+  background:linear-gradient(160deg, var(--panel), var(--panel-2));
+  border:1px solid var(--line); border-radius:20px;
+  padding:30px 24px 26px;
+  box-shadow: 0 30px 80px -40px rgba(0,0,0,0.7);
+}
+.loop-card-label{
+  font-family:var(--mono); font-size:11px; color:var(--text-faint);
+  text-transform:uppercase; letter-spacing:.08em;
+  display:flex; justify-content:space-between; margin-bottom:14px;
+}
+.loop-card-label span:last-child{ color:var(--cyan); }
+
+.loop-svg-wrap{ width:100%; aspect-ratio:1/1; max-width:420px; margin:0 auto; }
+
+/* node pulse along path handled via SVG anim below */
+
+.loop-caption{
+  margin-top:16px; text-align:center; font-size:13.5px; color:var(--text-dim);
+  font-family:var(--mono);
+}
+.loop-caption b{ color:var(--text); font-weight:600; }
+
+/* ============================================================
+   SECTION SCAFFOLDING
+   ============================================================ */
+section{ position:relative; z-index:1; padding:96px 0; }
+.section-head{ max-width:680px; margin-bottom:56px; }
+.section-tag{
+  font-family:var(--mono); font-size:12px; color:var(--text-faint);
+  text-transform:uppercase; letter-spacing:.08em; margin-bottom:14px;
+  display:flex; align-items:center; gap:10px;
+}
+.section-tag::before{ content:""; width:18px; height:1px; background:var(--text-faint); display:inline-block; }
+.section-head h2{
+  font-family:var(--display); font-weight:600; font-size:clamp(28px,3.4vw,40px);
+  letter-spacing:-0.01em; margin-bottom:14px;
+}
+.section-head p{ color:var(--text-dim); font-size:16.5px; }
+
+hr.div{
+  border:none; height:1px; background:var(--line); max-width:var(--maxw); margin:0 auto;
+}
+
+/* ============================================================
+   LAYERS — three cards (GenAI / Agent / Agentic AI)
+   ============================================================ */
+.layers-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+}
+@media (max-width:900px){ .layers-grid{ grid-template-columns:1fr; } }
+
+.layer-card{
+  background:var(--panel);
+  border:1px solid var(--line); border-radius:var(--radius);
+  padding:28px 24px; position:relative; overflow:hidden;
+  transition: border-color .25s, transform .25s;
+}
+.layer-card:hover{ transform:translateY(-4px); }
+.layer-card[data-accent="cyan"]{ }
+.layer-card[data-accent="cyan"]:hover{ border-color:rgba(94,230,217,0.4); }
+.layer-card[data-accent="violet"]:hover{ border-color:rgba(157,140,255,0.4); }
+.layer-card[data-accent="amber"]:hover{ border-color:rgba(242,163,61,0.4); }
+
+.layer-glyph{
+  width:42px; height:42px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:18px; font-family:var(--mono); font-size:13px; font-weight:600;
+}
+.layer-card[data-accent="cyan"] .layer-glyph{ background:var(--cyan-dim); color:var(--cyan); border:1px solid rgba(94,230,217,.3);}
+.layer-card[data-accent="violet"] .layer-glyph{ background:var(--violet-dim); color:var(--violet); border:1px solid rgba(157,140,255,.3);}
+.layer-card[data-accent="amber"] .layer-glyph{ background:var(--amber-dim); color:var(--amber); border:1px solid rgba(242,163,61,.3);}
+
+.layer-card h3{ font-family:var(--display); font-size:21px; margin-bottom:6px; font-weight:600;}
+.layer-card .layer-q{
+  font-family:var(--mono); font-size:13px; color:var(--text-dim); margin-bottom:16px; display:block;
+}
+.layer-card p.desc{ font-size:14.5px; color:var(--text-dim); margin-bottom:18px; }
+.layer-card .layer-behavior{
+  font-size:13px; color:var(--text); border-top:1px solid var(--line); padding-top:14px;
+}
+.layer-card .layer-behavior b{ font-family:var(--mono); font-size:11px; color:var(--text-faint); display:block; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; font-weight:600;}
+
+/* ============================================================
+   AUTONOMY LADDER — signature interactive
+   ============================================================ */
+.ladder-shell{
+  background:linear-gradient(160deg, var(--panel), var(--ink-2));
+  border:1px solid var(--line); border-radius:20px;
+  padding:40px 36px 36px;
+}
+@media (max-width:700px){ .ladder-shell{ padding:28px 18px; } }
+
+.ladder-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:28px; flex-wrap:wrap; }
+.ladder-level-badge{
+  font-family:var(--mono); font-size:12px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em;
+}
+.ladder-level-name{
+  font-family:var(--display); font-size:26px; font-weight:600; margin-top:4px; transition:color .3s;
+}
+.ladder-risk{
+  text-align:right;
+}
+.ladder-risk .lbl{ font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; }
+.ladder-risk .val{ font-family:var(--mono); font-size:14px; margin-top:4px; font-weight:600; }
+
+.ladder-stage{
+  width:100%; height:200px; position:relative; margin-bottom:28px;
+  display:flex; align-items:center; justify-content:center;
+}
+
+.slider-row{ display:flex; align-items:center; gap:18px; margin-bottom:22px; }
+input[type="range"]{
+  -webkit-appearance:none; appearance:none;
+  flex:1; height:4px; border-radius:4px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet), var(--amber));
+  outline:none; cursor:pointer;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:20px; height:20px; border-radius:50%;
+  background:var(--text); border:3px solid var(--ink);
+  box-shadow:0 0 0 2px var(--line-strong);
+  cursor:pointer;
+}
+input[type="range"]::-moz-range-thumb{
+  width:20px; height:20px; border-radius:50%;
+  background:var(--text); border:3px solid var(--ink);
+  cursor:pointer;
+}
+.slider-ticks{ display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--text-faint); padding:0 2px; margin-bottom:24px; gap:4px;}
+.slider-ticks span{ cursor:pointer; flex:1; text-align:center; }
+.slider-ticks span:first-child{ text-align:left; }
+.slider-ticks span:last-child{ text-align:right; }
+.slider-ticks span.active{ color:var(--cyan); }
+@media (max-width:600px){
+  .slider-ticks{ font-size:9px; flex-wrap:wrap; row-gap:6px; }
+  .slider-ticks span{ flex:1 1 30%; text-align:center; }
+}
+
+.ladder-desc{ color:var(--text-dim); font-size:14.5px; max-width:600px; min-height:48px; }
+.ladder-desc b{ color:var(--text); }
+
+/* nodes for ladder visualization */
+.lnode{
+  min-width:54px; height:54px; padding:0 8px; border-radius:12px;
+  background:var(--panel-2); border:1.5px solid var(--line-strong);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:10px; color:var(--text-dim);
+  white-space:nowrap;
+  position:absolute; transition: all .5s cubic-bezier(.4,0,.2,1);
+  transform:translateX(-50%);
+}
+.lnode.core{ border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); box-shadow:0 0 24px -6px rgba(94,230,217,0.5); }
+.lconn{
+  position:absolute; height:1.5px; background:var(--line-strong);
+  transform-origin:left center; transition: all .5s cubic-bezier(.4,0,.2,1);
+}
+
+/* ============================================================
+   ARCHITECTURE — components grid
+   ============================================================ */
+.arch-grid{
+  display:grid; grid-template-columns: repeat(4, 1fr); gap:16px;
+}
+@media (max-width:900px){ .arch-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:560px){ .arch-grid{ grid-template-columns:1fr; } }
+
+.arch-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:22px 18px; transition: border-color .2s, transform .2s;
+}
+.arch-card:hover{ border-color:var(--line-strong); transform:translateY(-3px); }
+.arch-index{ font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-bottom:14px; }
+.arch-card h4{ font-family:var(--display); font-size:17px; margin-bottom:8px; font-weight:600; }
+.arch-card p{ font-size:13.5px; color:var(--text-dim); }
+
+/* pattern tabs */
+.pattern-tabs{ display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
+.ptab{
+  font-family:var(--mono); font-size:13px; padding:9px 16px; border-radius:8px;
+  border:1px solid var(--line-strong); background:transparent; color:var(--text-dim);
+  cursor:pointer; transition:all .2s;
+}
+.ptab:hover{ color:var(--text); border-color:var(--text-dim); }
+.ptab.active{ background:var(--cyan); color:#06110f; border-color:var(--cyan); }
+.pattern-panel{ display:none; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:28px; }
+.pattern-panel.active{ display:block; animation: fadeUp .35s ease; }
+@keyframes fadeUp{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+.pattern-panel h4{ font-family:var(--display); font-size:20px; margin-bottom:10px; }
+.pattern-panel p{ color:var(--text-dim); font-size:14.5px; margin-bottom:14px; max-width:760px;}
+.flow-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:18px; }
+.flow-chip{
+  font-family:var(--mono); font-size:12.5px; padding:8px 14px; border-radius:100px;
+  border:1px solid var(--line-strong); color:var(--text-dim); white-space:nowrap;
+}
+.flow-chip.hl{ border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+.flow-arrow{ color:var(--text-faint); font-family:var(--mono); }
+
+/* ============================================================
+   FRAMEWORKS table
+   ============================================================ */
+.fw-table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:14px; }
+table.fw{ width:100%; border-collapse:collapse; min-width:760px; }
+table.fw th, table.fw td{ padding:16px 18px; text-align:left; font-size:14px; border-bottom:1px solid var(--line); }
+table.fw th{
+  font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--text-faint); background:var(--panel-2);
+}
+table.fw td{ color:var(--text-dim); }
+table.fw td.fw-name{ color:var(--text); font-weight:600; font-family:var(--display); font-size:15px; }
+table.fw tr:last-child td{ border-bottom:none; }
+table.fw tbody tr{ transition:background .2s; }
+table.fw tbody tr:hover{ background:var(--panel); }
+.fw-tag{
+  display:inline-block; font-family:var(--mono); font-size:11px; padding:3px 9px;
+  border-radius:100px; border:1px solid var(--line-strong); color:var(--text-dim);
+}
+
+/* ============================================================
+   USE CASES — accordion
+   ============================================================ */
+.acc{ border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.acc-item + .acc-item{ border-top:1px solid var(--line); }
+.acc-head{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:22px 24px; cursor:pointer; background:var(--panel); user-select:none;
+}
+.acc-head:hover{ background:var(--panel-2); }
+.acc-head h4{ font-family:var(--display); font-size:18px; font-weight:600; display:flex; align-items:center; gap:12px;}
+.acc-num{ font-family:var(--mono); font-size:12px; color:var(--text-faint); }
+.acc-icon{ width:20px; height:20px; position:relative; flex-shrink:0; }
+.acc-icon::before, .acc-icon::after{
+  content:""; position:absolute; background:var(--text-dim); transition:transform .3s;
+}
+.acc-icon::before{ width:14px; height:2px; top:9px; left:3px; }
+.acc-icon::after{ width:2px; height:14px; top:3px; left:9px; }
+.acc-item.open .acc-icon::after{ transform:rotate(90deg); }
+.acc-body{ max-height:0; overflow:hidden; transition:max-height .35s ease; background:var(--ink-2); }
+.acc-item.open .acc-body{ max-height:400px; }
+.acc-body-inner{ padding:4px 24px 24px; }
+.acc-body-inner ul{ list-style:none; }
+.acc-body-inner li{
+  font-size:14.5px; color:var(--text-dim); padding:10px 0 10px 22px; position:relative;
+  border-top:1px solid var(--line);
+}
+.acc-body-inner li:first-child{ border-top:none; }
+.acc-body-inner li::before{
+  content:"▸"; position:absolute; left:0; color:var(--cyan); font-size:12px; top:11px;
+}
+
+/* ============================================================
+   RISK matrix
+   ============================================================ */
+.risk-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media (max-width:800px){ .risk-grid{ grid-template-columns:1fr; } }
+.risk-col h3{ font-family:var(--display); font-size:18px; margin-bottom:16px; display:flex; align-items:center; gap:10px;}
+.risk-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.risk-col.shared .risk-dot{ background:var(--violet); }
+.risk-col.amplified .risk-dot{ background:var(--amber); }
+.risk-list{ list-style:none; display:flex; flex-direction:column; gap:10px; }
+.risk-list li{
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:14px 16px; font-size:14px; color:var(--text-dim);
+}
+.risk-list li b{ color:var(--text); font-weight:600; }
+
+/* ============================================================
+   VIDEO LIBRARY
+   ============================================================ */
+.video-filter{ display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
+.vf-btn{
+  font-family:var(--mono); font-size:12.5px; padding:8px 15px; border-radius:100px;
+  border:1px solid var(--line-strong); background:transparent; color:var(--text-dim); cursor:pointer;
+  transition:all .2s;
+}
+.vf-btn:hover{ color:var(--text); }
+.vf-btn.active{ background:var(--text); color:var(--ink); border-color:var(--text); }
+
+.video-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+@media (max-width:980px){ .video-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:680px){ .video-grid{ grid-template-columns:1fr; } }
+
+.vcard{
+  background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:22px; text-decoration:none; color:inherit; display:flex; flex-direction:column;
+  transition: transform .22s, border-color .22s;
+  position:relative; overflow:hidden;
+}
+.vcard:hover{ transform:translateY(-4px); border-color:rgba(94,230,217,0.35); }
+.vcard-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.vcard-tag{
+  font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--cyan); background:var(--cyan-dim); padding:4px 9px; border-radius:100px;
+  border:1px solid rgba(94,230,217,0.3);
+}
+.vcard-play{
+  width:30px; height:30px; border-radius:50%; border:1px solid var(--line-strong);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  transition: background .2s, border-color .2s;
+}
+.vcard:hover .vcard-play{ background:var(--cyan); border-color:var(--cyan); }
+.vcard:hover .vcard-play svg path{ fill:#06110f; }
+.vcard h4{ font-family:var(--display); font-size:16.5px; font-weight:600; line-height:1.3; margin-bottom:10px; }
+.vcard .channel{ font-family:var(--mono); font-size:12px; color:var(--text-faint); margin-bottom:12px; }
+.vcard p.vdesc{ font-size:13.5px; color:var(--text-dim); flex:1; }
+.vcard .vlink{ margin-top:16px; font-family:var(--mono); font-size:12px; color:var(--cyan); display:flex; align-items:center; gap:6px;}
+
+/* ============================================================
+   GLOSSARY
+   ============================================================ */
+.glossary-search{
+  width:100%; padding:14px 18px; border-radius:10px; margin-bottom:24px;
+  background:var(--panel); border:1px solid var(--line-strong); color:var(--text);
+  font-family:var(--mono); font-size:14px;
+}
+.glossary-search::placeholder{ color:var(--text-faint); }
+.glossary-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+@media (max-width:700px){ .glossary-grid{ grid-template-columns:1fr; } }
+.gterm{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; transition: opacity .2s, transform .2s; }
+.gterm .gname{ font-family:var(--mono); font-weight:600; color:var(--cyan); font-size:13.5px; margin-bottom:6px; }
+.gterm .gdef{ font-size:13.5px; color:var(--text-dim); }
+.gterm.hide{ display:none; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{ position:relative; z-index:1; border-top:1px solid var(--line); padding:48px 0 40px; }
+.footer-inner{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+.footer-inner p{ font-size:13px; color:var(--text-faint); font-family:var(--mono); }
+.back-top{
+  font-family:var(--mono); font-size:12px; color:var(--text-dim); text-decoration:none;
+  display:flex; align-items:center; gap:6px; border:1px solid var(--line-strong); padding:8px 14px; border-radius:100px;
+  transition: border-color .2s, color .2s;
+}
+.back-top:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+/* reveal-on-scroll */
+.reveal{ opacity:0; transform:translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.in{ opacity:1; transform:translateY(0); }
+
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- ============================================================ NAV ============================================================ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#top" class="brand"><span class="brand-dot"></span> AGENT.FIELD_GUIDE</a>
+    <ul class="nav-links">
+      <li><a href="#layers">Layers</a></li>
+      <li><a href="#ladder">Autonomy</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#frameworks">Frameworks</a></li>
+      <li><a href="#usecases">Use Cases</a></li>
+      <li><a href="#risk">Risk</a></li>
+      <li><a href="#videos">Videos</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+    </ul>
+    <a href="#ladder" class="nav-cta">Try the ladder →</a>
+  </div>
+</nav>
+
+<!-- ============================================================ HERO ============================================================ -->
+<header id="top" class="hero">
+  <div class="reveal in">
+    <div class="eyebrow">Field guide · updated for 2026</div>
+    <h1>Three words people use<br> as one. <span class="grad">They aren't.</span></h1>
+    <p class="lead">Generative AI creates. AI Agents act. Agentic AI orchestrates. This is the loop underneath all three — and the ladder that separates a chatbot from a system that runs without you.</p>
+    <div class="hero-ctas">
+      <a href="#layers" class="btn btn-primary">Start with the basics ↓</a>
+      <a href="#ladder" class="btn btn-ghost">Play with the autonomy ladder</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">3</div><div class="lbl">Core Layers</div></div>
+      <div class="hero-stat"><div class="num">5</div><div class="lbl">Autonomy Levels</div></div>
+      <div class="hero-stat"><div class="num">6</div><div class="lbl">Frameworks Compared</div></div>
+      <div class="hero-stat"><div class="num">11</div><div class="lbl">Curated Videos</div></div>
+    </div>
+  </div>
+
+  <div class="loop-card reveal in">
+    <div class="loop-card-label"><span>THE AGENT LOOP</span> <span id="loopPhaseLabel">PERCEIVE</span></div>
+    <div class="loop-svg-wrap">
+      <svg viewBox="0 0 300 300" id="loopSvg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#3a4154"/>
+          </marker>
+        </defs>
+        <!-- connecting loop path -->
+        <circle cx="150" cy="150" r="108" fill="none" stroke="#1c2230" stroke-width="2"/>
+        <!-- traveling pulse -->
+        <circle r="5" fill="#5EE6D9" id="pulseDot">
+          <animateMotion id="pulseMotion" dur="6s" repeatCount="indefinite"
+            path="M 258,150 A 108,108 0 1 1 150,42 A 108,108 0 1 1 42,150 A 108,108 0 1 1 150,258 A 108,108 0 1 1 258,150"/>
+        </circle>
+
+        <!-- 4 nodes -->
+        <g id="node-perceive" class="loop-node">
+          <circle cx="150" cy="42" r="34" fill="#141925" stroke="#5EE6D9" stroke-width="1.6"/>
+          <text x="150" y="38" text-anchor="middle" fill="#EDEFF4" font-family="JetBrains Mono" font-size="10" font-weight="600">PERCEIVE</text>
+          <text x="150" y="51" text-anchor="middle" fill="#6B7280" font-family="JetBrains Mono" font-size="8">input/state</text>
+        </g>
+        <g id="node-reason" class="loop-node">
+          <circle cx="258" cy="150" r="34" fill="#141925" stroke="#3a4154" stroke-width="1.6"/>
+          <text x="258" y="146" text-anchor="middle" fill="#EDEFF4" font-family="JetBrains Mono" font-size="10" font-weight="600">REASON</text>
+          <text x="258" y="159" text-anchor="middle" fill="#6B7280" font-family="JetBrains Mono" font-size="8">plan next</text>
+        </g>
+        <g id="node-act" class="loop-node">
+          <circle cx="150" cy="258" r="34" fill="#141925" stroke="#3a4154" stroke-width="1.6"/>
+          <text x="150" y="254" text-anchor="middle" fill="#EDEFF4" font-family="JetBrains Mono" font-size="10" font-weight="600">ACT</text>
+          <text x="150" y="267" text-anchor="middle" fill="#6B7280" font-family="JetBrains Mono" font-size="8">call a tool</text>
+        </g>
+        <g id="node-observe" class="loop-node">
+          <circle cx="42" cy="150" r="34" fill="#141925" stroke="#3a4154" stroke-width="1.6"/>
+          <text x="42" y="146" text-anchor="middle" fill="#EDEFF4" font-family="JetBrains Mono" font-size="10" font-weight="600">OBSERVE</text>
+          <text x="42" y="159" text-anchor="middle" fill="#6B7280" font-family="JetBrains Mono" font-size="8">read result</text>
+        </g>
+
+        <!-- center label -->
+        <text x="150" y="146" text-anchor="middle" fill="#A8AFC0" font-family="JetBrains Mono" font-size="9" letter-spacing="1">LLM CORE</text>
+        <text x="150" y="160" text-anchor="middle" fill="#6B7280" font-family="JetBrains Mono" font-size="8">+ memory</text>
+      </svg>
+    </div>
+    <div class="loop-caption">This loop, repeated, is what separates an <b>agent</b> from a single prompt-response.</div>
+  </div>
+</header>
+
+<hr class="div">
+
+<!-- ============================================================ LAYERS ============================================================ -->
+<section id="layers">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">01 — The stack</div>
+      <h2>One engine, three levels of independence</h2>
+      <p>Agentic AI is built on AI agents, which are built on generative AI. Each layer adds a capability the one below it doesn't have.</p>
+    </div>
+
+    <div class="layers-grid">
+      <div class="layer-card reveal" data-accent="cyan">
+        <div class="layer-glyph">GEN</div>
+        <h3>Generative AI</h3>
+        <span class="layer-q">"Can you create this for me?"</span>
+        <p class="desc">A model that turns a prompt into content — text, code, an image, audio, video. Powerful, but reactive: it does nothing until asked, and forgets everything once it answers.</p>
+        <div class="layer-behavior"><b>Behavior</b>Single prompt → single response. No tools, no memory, no goal-tracking.</div>
+      </div>
+
+      <div class="layer-card reveal" data-accent="violet">
+        <div class="layer-glyph">AGT</div>
+        <h3>AI Agent</h3>
+        <span class="layer-q">"Can you complete this task using tools?"</span>
+        <p class="desc">A generative model wrapped in a loop. It can call APIs, run code, search the web, and decide what to do next based on what just happened — until the task is actually done.</p>
+        <div class="layer-behavior"><b>Behavior</b>Goal-directed. Plans, acts, observes results, repeats — bounded to one task.</div>
+      </div>
+
+      <div class="layer-card reveal" data-accent="amber">
+        <div class="layer-glyph">AGC</div>
+        <h3>Agentic AI</h3>
+        <span class="layer-q">"Can you run this whole workflow on your own?"</span>
+        <p class="desc">Multiple agents (or one very capable one) coordinating across an open-ended workflow — delegating sub-tasks, recovering from failure, and escalating to a human only when it truly must.</p>
+        <div class="layer-behavior"><b>Behavior</b>Proactive & autonomous. Sets sub-goals, orchestrates other agents, runs continuously.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ============================================================ AUTONOMY LADDER (signature) ============================================================ -->
+<section id="ladder">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">02 — The signature move</div>
+      <h2>Drag the ladder. Watch the system grow.</h2>
+      <p>Most "we need an agent" requests actually need a lower rung than people assume. Slide through the five levels of autonomy and see what's actually being added at each step — and what it costs to govern.</p>
+    </div>
+
+    <div class="ladder-shell reveal">
+      <div class="ladder-top">
+        <div>
+          <div class="ladder-level-badge">Level <span id="lvlNum">1</span> of 5</div>
+          <div class="ladder-level-name" id="lvlName">Predictive / Generative</div>
+        </div>
+        <div class="ladder-risk">
+          <div class="lbl">Governance load</div>
+          <div class="val" id="lvlRisk">Minimal</div>
+        </div>
+      </div>
+
+      <div class="ladder-stage" id="ladderStage">
+        <!-- nodes injected by JS -->
+      </div>
+
+      <div class="slider-row">
+        <span style="font-family:var(--mono); font-size:12px; color:var(--text-faint);">L1</span>
+        <input type="range" id="ladderSlider" min="1" max="5" step="1" value="1" aria-label="Autonomy level">
+        <span style="font-family:var(--mono); font-size:12px; color:var(--text-faint);">L5</span>
+      </div>
+      <div class="slider-ticks">
+        <span data-lvl="1">Generative</span>
+        <span data-lvl="2">+RAG</span>
+        <span data-lvl="3">Single Agent</span>
+        <span data-lvl="4">Multi-Agent</span>
+        <span data-lvl="5">Autonomous</span>
+      </div>
+
+      <p class="ladder-desc" id="lvlDesc"></p>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ============================================================ ARCHITECTURE ============================================================ -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">03 — Under the hood</div>
+      <h2>What's actually inside an agent</h2>
+      <p>Four components, wired into a closed feedback loop. Get these right and every framework, paper, or diagram you encounter will make sense.</p>
+    </div>
+
+    <div class="arch-grid">
+      <div class="arch-card reveal">
+        <div class="arch-index">01 / CORE</div>
+        <h4>LLM / Reasoning Engine</h4>
+        <p>The "brain" that interprets a goal, weighs options, and decides the next step. GPT, Claude, Gemini, Llama.</p>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-index">02 / STATE</div>
+        <h4>Memory</h4>
+        <p>Short-term working context for the current task, plus long-term storage — past actions, facts, learned preferences.</p>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-index">03 / REACH</div>
+        <h4>Tools</h4>
+        <p>What turns "understanding" into "doing" — web search, code execution, APIs, file systems, CRMs.</p>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-index">04 / CONTROL</div>
+        <h4>Planning & Orchestration</h4>
+        <p>Breaks a goal into ordered sub-tasks, sequences them, and decides when the job is actually finished.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:56px;">
+      <div class="section-head reveal" style="margin-bottom:28px;">
+        <div class="section-tag">Reasoning patterns</div>
+        <h2 style="font-size:26px;">How agents structure their thinking</h2>
+      </div>
+
+      <div class="pattern-tabs reveal" role="tablist">
+        <button class="ptab active" data-tab="react">ReAct</button>
+        <button class="ptab" data-tab="plan">Plan-and-Execute</button>
+        <button class="ptab" data-tab="reflect">Reflexion</button>
+        <button class="ptab" data-tab="hier">Hierarchical</button>
+      </div>
+
+      <div class="pattern-panel active reveal" id="panel-react">
+        <h4>ReAct — Reason + Act</h4>
+        <p>The agent writes out its reasoning ("Thought") before each action, then reacts to what comes back. Slower and more token-hungry, but tightly grounded in real outcomes rather than a guess made up front.</p>
+        <div class="flow-row">
+          <span class="flow-chip hl">Thought</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">Action</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">Observation</span><span class="flow-arrow">→</span>
+          <span class="flow-chip hl">Thought</span><span class="flow-arrow">→ … loop</span>
+        </div>
+      </div>
+
+      <div class="pattern-panel" id="panel-plan">
+        <h4>Plan-and-Execute</h4>
+        <p>A capable "planner" model lays out the full sequence of sub-tasks up front. A cheaper, faster "executor" then works through each one and reports back. Strategy and tactics are split into two roles.</p>
+        <div class="flow-row">
+          <span class="flow-chip hl">Planner: builds task graph</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">Executor: step 1</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">step 2</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">step n</span>
+        </div>
+      </div>
+
+      <div class="pattern-panel" id="panel-reflect">
+        <h4>Reflexion / Self-Critique</h4>
+        <p>Before moving on, the agent checks its own intermediate output for mistakes and revises its approach — catching errors mid-task instead of only discovering them at the end.</p>
+        <div class="flow-row">
+          <span class="flow-chip">Act</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">Self-critique</span><span class="flow-arrow">→</span>
+          <span class="flow-chip hl">Revise</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">Act again</span>
+        </div>
+      </div>
+
+      <div class="pattern-panel" id="panel-hier">
+        <h4>Hierarchical Decomposition</h4>
+        <p>A single "monolithic" agent loses track of its own goal as context grows — a failure mode often called context dilution. The fix: a top agent plans and delegates, mid-level agents break work down further, and low-level agents execute narrow, tool-specific jobs.</p>
+        <div class="flow-row">
+          <span class="flow-chip hl">High-level agent (plans)</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">Mid-level agents (decompose)</span><span class="flow-arrow">→</span>
+          <span class="flow-chip">Low-level agents (execute)</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:56px; display:grid; grid-template-columns:1fr 1fr; gap:20px;" class="reveal">
+      <div class="arch-card">
+        <div class="arch-index">PROTOCOL</div>
+        <h4>MCP — Model Context Protocol</h4>
+        <p>An open standard for connecting agents to outside tools and data — one consistent interface instead of a custom integration per API. Often called "the USB-C of agent tooling."</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-index">PROTOCOL</div>
+        <h4>A2A — Agent-to-Agent Protocol</h4>
+        <p>Standardizes how independent agents — even from different frameworks — discover and talk to each other, so a LangGraph agent and a CrewAI agent can collaborate in one network.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ============================================================ FRAMEWORKS ============================================================ -->
+<section id="frameworks">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">04 — Build with</div>
+      <h2>Picking a framework</h2>
+      <p>Each one reflects a different philosophy about how agents should be coordinated. None is universally "best" — fit the tool to the workflow shape.</p>
+    </div>
+
+    <div class="fw-table-wrap reveal">
+      <table class="fw">
+        <thead>
+          <tr><th>Framework</th><th>Coordination model</th><th>Best for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="fw-name">LangGraph</td>
+            <td>Directed graph, shared state</td>
+            <td>Production workflows needing audit trails, checkpointing, human-in-the-loop <span class="fw-tag">most control</span></td>
+          </tr>
+          <tr>
+            <td class="fw-name">CrewAI</td>
+            <td>Role-based "crews"</td>
+            <td>Fast prototyping, work that splits into specialist roles <span class="fw-tag">lowest learning curve</span></td>
+          </tr>
+          <tr>
+            <td class="fw-name">Microsoft Agent Framework</td>
+            <td>Multi-agent conversation</td>
+            <td>Azure/Microsoft-native enterprise, agents debating or reviewing each other</td>
+          </tr>
+          <tr>
+            <td class="fw-name">OpenAI Agents SDK</td>
+            <td>Handoff-based</td>
+            <td>Fast GPT-centric builds with sandboxing and built-in guardrails</td>
+          </tr>
+          <tr>
+            <td class="fw-name">Google ADK</td>
+            <td>Hierarchical agent tree</td>
+            <td>Multimodal agents, Google Cloud / Gemini-native deployments</td>
+          </tr>
+          <tr>
+            <td class="fw-name">Claude Agent SDK</td>
+            <td>Tool-use + native MCP</td>
+            <td>Safety-first agents, computer-use tasks <span class="fw-tag">native MCP</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ============================================================ USE CASES ============================================================ -->
+<section id="usecases">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">05 — In the wild</div>
+      <h2>What each layer is actually used for</h2>
+      <p>Click a row to expand it.</p>
+    </div>
+
+    <div class="acc reveal">
+      <div class="acc-item open">
+        <div class="acc-head">
+          <h4><span class="acc-num">GEN</span> Generative AI</h4>
+          <span class="acc-icon"></span>
+        </div>
+        <div class="acc-body"><div class="acc-body-inner">
+          <ul>
+            <li>Content marketing — blog drafts, ad copy, product descriptions at scale</li>
+            <li>Software development — code completion, refactoring, test generation</li>
+            <li>Design & creative — concept art, mockups, music and video drafts</li>
+            <li>Education — personalized explanations, practice questions, study guides</li>
+          </ul>
+        </div></div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-head">
+          <h4><span class="acc-num">AGT</span> AI Agents</h4>
+          <span class="acc-icon"></span>
+        </div>
+        <div class="acc-body"><div class="acc-body-inner">
+          <ul>
+            <li>Customer support agents that read a ticket, check order history via API, and resolve it end-to-end</li>
+            <li>Coding agents that read a repo, write a patch, run tests, and open a pull request</li>
+            <li>Research agents that search the web, read multiple sources, and compile a structured brief</li>
+            <li>Data agents that query a database, run analysis, and generate a report or chart</li>
+          </ul>
+        </div></div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-head">
+          <h4><span class="acc-num">AGC</span> Agentic AI / Multi-Agent</h4>
+          <span class="acc-icon"></span>
+        </div>
+        <div class="acc-body"><div class="acc-body-inner">
+          <ul>
+            <li>Procurement automation — agents that monitor inventory, negotiate with supplier systems, place orders within approved limits</li>
+            <li>HR onboarding pipelines — a chain of agents provisioning accounts, scheduling training, answering new-hire questions</li>
+            <li>Compliance & audit workflows — agents that continuously monitor transactions, flag anomalies, draft reports for review</li>
+            <li>Autonomous research ("autoresearch") — agents that design experiments, collect data, and summarize findings with minimal steering</li>
+            <li>DevOps/CI-CD pipelines — agents that debug failing builds, write fixes, run tests, and open pull requests automatically</li>
+          </ul>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ============================================================ RISK ============================================================ -->
+<section id="risk">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">06 — Read before you ship</div>
+      <h2>Risk scales with autonomy</h2>
+      <p>Generative AI introduces <b style="color:var(--text)">informational risk</b> — bad text a human reviews. Agentic AI introduces <b style="color:var(--text)">operational risk</b> — wrong actions on live systems, sometimes before anyone sees them.</p>
+    </div>
+
+    <div class="risk-grid reveal">
+      <div class="risk-col shared">
+        <h3><span class="risk-dot"></span>Shared risks (generative core)</h3>
+        <ul class="risk-list">
+          <li><b>Hallucination</b> — confident but factually incorrect output</li>
+          <li><b>Bias</b> — models can reproduce patterns in training data</li>
+          <li><b>Copyright & IP</b> — generated content can closely resemble existing work</li>
+          <li><b>Overreliance</b> — trusting output without verification</li>
+        </ul>
+      </div>
+      <div class="risk-col amplified">
+        <h3><span class="risk-dot"></span>Amplified by autonomy</h3>
+        <ul class="risk-list">
+          <li><b>Operational risk</b> — a real, possibly irreversible action taken before review</li>
+          <li><b>Context dilution</b> — long tasks cause the agent to lose track of the original goal</li>
+          <li><b>Runaway loops</b> — poor bounds drive up cost/latency without converging</li>
+          <li><b>Expanded attack surface</b> — live-system + open-web access invites prompt injection</li>
+          <li><b>Governance gaps</b> — unclear ownership when an autonomous system errs</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top:28px; background:var(--amber-dim); border:1px solid rgba(242,163,61,0.3); border-radius:14px; padding:22px 24px;">
+      <p style="font-size:14.5px; color:var(--text);"><b>Rule of thumb:</b> start with the lowest autonomy level that actually solves the problem. Add a human-in-the-loop checkpoint before any high-impact or irreversible action, and log every decision an agent makes for auditability.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ============================================================ VIDEOS ============================================================ -->
+<section id="videos">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">07 — Watch next</div>
+      <h2>Curated video library</h2>
+      <p>Filter by where you are in the learning curve. All links verified June 2026.</p>
+    </div>
+
+    <div class="video-filter reveal">
+      <button class="vf-btn active" data-filter="all">All</button>
+      <button class="vf-btn" data-filter="foundations">Foundations</button>
+      <button class="vf-btn" data-filter="agents">AI Agents</button>
+      <button class="vf-btn" data-filter="agentic">Agentic AI</button>
+      <button class="vf-btn" data-filter="technical">Technical track</button>
+    </div>
+
+    <div class="video-grid" id="videoGrid">
+
+      <a class="vcard reveal" data-cat="foundations" href="https://www.youtube.com/watch?v=qYNweeDHiyU" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">Foundations</span><span class="vcard-play">▶</span></div>
+        <h4>AI, Machine Learning, Deep Learning and Generative AI Explained</h4>
+        <div class="channel">IBM Technology</div>
+        <p class="vdesc">A clear, beginner-friendly walkthrough of how AI, ML, deep learning, and generative AI relate to and differ from each other.</p>
+        <div class="vlink">youtube.com/watch?v=qYNweeDHiyU ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="foundations" href="https://www.ibm.com/think/videos/generative-ai-models" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">Foundations</span><span class="vcard-play">▶</span></div>
+        <h4>Generative Models Explained</h4>
+        <div class="channel">IBM Think / IBM Research</div>
+        <p class="vdesc">IBM researchers explain how generative models work, including the LLM/RAG framework and proprietary-vs-open-source tradeoffs.</p>
+        <div class="vlink">ibm.com/think/videos ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="foundations" href="https://www.youtube.com/watch?v=rBlCOLfMYfw" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">Foundations</span><span class="vcard-play">▶</span></div>
+        <h4>The Limits of AI: Generative AI, NLP, AGI & What's Next</h4>
+        <div class="channel">IBM Technology</div>
+        <p class="vdesc">Looks past the current generative AI wave toward NLP's limitations and the road toward more general AI.</p>
+        <div class="vlink">youtube.com/watch?v=rBlCOLfMYfw ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="agents" href="https://www.youtube.com/watch?v=Lg-meK5IU8Q" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">AI Agents</span><span class="vcard-play">▶</span></div>
+        <h4>Build Your AI Agent — What is an AI Agent & How It Works</h4>
+        <div class="channel">IBM Technology</div>
+        <p class="vdesc">A practical explainer on what defines an AI agent, how the perceive-reason-act loop works, plus a guided build.</p>
+        <div class="vlink">youtube.com/watch?v=Lg-meK5IU8Q ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="agents" href="https://www.youtube.com/watch?v=QOndW72vrYo" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">AI Agents</span><span class="vcard-play">▶</span></div>
+        <h4>Andrej Karpathy's AI Agent Blueprint — 10 Principles</h4>
+        <div class="channel">Commentary on Andrej Karpathy's work</div>
+        <p class="vdesc">Breaks down principles behind Karpathy's autoresearch agent experiments, including bugs it caught that a 20-year expert missed.</p>
+        <div class="vlink">youtube.com/watch?v=QOndW72vrYo ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="agents" href="https://mediacenter.ibm.com/media/IN+5+Types+of+AI+Agents:+Autonomous+Functions++Real-World+Applications/1_0suvlp8f" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">AI Agents</span><span class="vcard-play">▶</span></div>
+        <h4>5 Types of AI Agents: Autonomous Functions & Real-World Applications</h4>
+        <div class="channel">IBM (Martin Keen)</div>
+        <p class="vdesc">The classic taxonomy of agent types — from simple reflex agents to learning agents — and where each fits.</p>
+        <div class="vlink">mediacenter.ibm.com ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="agentic" href="https://www.youtube.com/watch?v=kwSVtQ7dziU" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">Agentic AI</span><span class="vcard-play">▶</span></div>
+        <h4>Skill Issue: Karpathy on Code Agents, AutoResearch & the "Loopy Era"</h4>
+        <div class="channel">No Priors (Sarah Guo)</div>
+        <p class="vdesc">What happens as agents start designing experiments and improving themselves with less human involvement.</p>
+        <div class="vlink">youtube.com/watch?v=kwSVtQ7dziU ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="agentic" href="https://www.youtube.com/watch?v=96jN2OCOfLs" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">Agentic AI</span><span class="vcard-play">▶</span></div>
+        <h4>Andrej Karpathy: From Vibe Coding to Agentic Engineering</h4>
+        <div class="channel">Sequoia Capital — AI Ascent 2026</div>
+        <p class="vdesc">The evolution from informal "vibe coding" to disciplined "agentic engineering," where orchestrated agents write code under human oversight.</p>
+        <div class="vlink">youtube.com/watch?v=96jN2OCOfLs ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="technical" href="https://www.youtube.com/@AndrejKarpathy/videos" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">Technical</span><span class="vcard-play">▶</span></div>
+        <h4>Let's Build GPT: From Scratch, in Code, Spelled Out</h4>
+        <div class="channel">Andrej Karpathy</div>
+        <p class="vdesc">A from-scratch, code-along build of a GPT-style model — the best technical starting point before touching any framework. Find it in the "Zero to Hero" playlist.</p>
+        <div class="vlink">youtube.com/@AndrejKarpathy ↗</div>
+      </a>
+
+      <a class="vcard reveal" data-cat="technical" href="https://www.youtube.com/@AndrejKarpathy/videos" target="_blank" rel="noopener">
+        <div class="vcard-top"><span class="vcard-tag">Technical</span><span class="vcard-play">▶</span></div>
+        <h4>Deep Dive into LLMs like ChatGPT</h4>
+        <div class="channel">Andrej Karpathy</div>
+        <p class="vdesc">A general-audience deep dive into how LLMs are trained and how they behave — good background before layering agents on top.</p>
+        <div class="vlink">youtube.com/@AndrejKarpathy ↗</div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ============================================================ GLOSSARY ============================================================ -->
+<section id="glossary">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">08 — Reference</div>
+      <h2>Glossary</h2>
+      <p>Search any term used throughout this guide.</p>
+    </div>
+
+    <input type="text" class="glossary-search reveal" id="glossarySearch" placeholder="Search terms — try 'memory' or 'MCP'…" aria-label="Search glossary">
+
+    <div class="glossary-grid" id="glossaryGrid">
+      <div class="gterm reveal"><div class="gname">LLM (Large Language Model)</div><div class="gdef">A neural network trained on vast text data to understand and generate human-like language.</div></div>
+      <div class="gterm reveal"><div class="gname">Prompt</div><div class="gdef">The input instruction or question given to a generative AI model.</div></div>
+      <div class="gterm reveal"><div class="gname">Token</div><div class="gdef">A chunk of text — often a word or part of one — that a model processes as a unit.</div></div>
+      <div class="gterm reveal"><div class="gname">Hallucination</div><div class="gdef">Confident but factually incorrect output produced by a generative model.</div></div>
+      <div class="gterm reveal"><div class="gname">RAG (Retrieval-Augmented Generation)</div><div class="gdef">A technique where a model retrieves relevant external information before generating a response.</div></div>
+      <div class="gterm reveal"><div class="gname">Function Calling / Tool Use</div><div class="gdef">The mechanism by which an LLM decides to invoke an external tool or API and use its result.</div></div>
+      <div class="gterm reveal"><div class="gname">ReAct</div><div class="gdef">An agent architecture pattern that interleaves explicit reasoning ("Thought") with actions and observations.</div></div>
+      <div class="gterm reveal"><div class="gname">Context Window</div><div class="gdef">The amount of text/tokens a model can consider at once when generating a response.</div></div>
+      <div class="gterm reveal"><div class="gname">MCP (Model Context Protocol)</div><div class="gdef">An open standard for connecting AI agents to external tools and data sources.</div></div>
+      <div class="gterm reveal"><div class="gname">A2A (Agent-to-Agent Protocol)</div><div class="gdef">An open standard letting independent agents, even from different frameworks, discover and communicate with each other.</div></div>
+      <div class="gterm reveal"><div class="gname">Human-in-the-Loop (HITL)</div><div class="gdef">A design pattern where a human must review or approve certain agent actions before they proceed.</div></div>
+      <div class="gterm reveal"><div class="gname">Multi-Agent System</div><div class="gdef">An architecture where multiple specialized agents collaborate, each handling part of a larger goal.</div></div>
+      <div class="gterm reveal"><div class="gname">Autonomy Ladder</div><div class="gdef">A framework describing increasing levels of AI independence, from simple prompt-response up to fully autonomous multi-agent systems.</div></div>
+      <div class="gterm reveal"><div class="gname">Context Dilution</div><div class="gdef">A failure mode where an agent loses track of its original goal as a long task accumulates intermediate steps.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FOOTER ============================================================ -->
+<footer>
+  <div class="wrap footer-inner">
+    <p>FIELD_GUIDE // GenAI · AI Agents · Agentic AI // compiled June 2026</p>
+    <a href="#top" class="back-top">↑ Back to top</a>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   REVEAL ON SCROLL
+   ============================================================ */
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+revealEls.forEach(el=>io.observe(el));
+
+/* ============================================================
+   HERO LOOP — phase label cycling in sync with the dot
+   ============================================================ */
+const phases = ["PERCEIVE","REASON","ACT","OBSERVE"];
+const loopPhaseLabel = document.getElementById('loopPhaseLabel');
+let phaseIdx = 0;
+setInterval(()=>{
+  phaseIdx = (phaseIdx+1) % phases.length;
+  loopPhaseLabel.textContent = phases[phaseIdx];
+}, 1500);
+
+/* ============================================================
+   AUTONOMY LADDER — signature interactive
+   ============================================================ */
+const levels = [
+  {
+    name: "Predictive / Generative",
+    risk: "Minimal",
+    riskColor: "var(--cyan)",
+    desc: "<b>One model, one prompt, one answer.</b> No tools, no memory, no autonomy. The entire system is a single reactive call.",
+    nodes: [ {x:50,y:50,core:true,label:"LLM"} ],
+    conns: []
+  },
+  {
+    name: "Retrieval-Augmented (RAG)",
+    risk: "Low",
+    riskColor: "var(--cyan)",
+    desc: "<b>The model can look things up before answering.</b> Still one shot, still no tool actions — just better-informed generation.",
+    nodes: [ {x:35,y:50,core:true,label:"LLM"}, {x:65,y:50,core:false,label:"KB"} ],
+    conns: [ {x1:35,y1:50,x2:65,y2:50} ]
+  },
+  {
+    name: "Single-Agent System",
+    risk: "Moderate",
+    riskColor: "var(--amber)",
+    desc: "<b>One agent plans, calls tools, and loops</b> — perceive, reason, act, observe — until a bounded task is complete.",
+    nodes: [ {x:50,y:30,core:true,label:"LLM"}, {x:25,y:70,core:false,label:"Tool A"}, {x:75,y:70,core:false,label:"Tool B"} ],
+    conns: [ {x1:50,y1:30,x2:25,y2:70}, {x1:50,y1:30,x2:75,y2:70} ]
+  },
+  {
+    name: "Multi-Agent System",
+    risk: "High",
+    riskColor: "var(--amber)",
+    desc: "<b>Specialized agents collaborate</b> — a researcher, a coder, a reviewer — each owning part of a larger goal and handing off work.",
+    nodes: [ {x:50,y:20,core:true,label:"Lead"}, {x:20,y:55,core:false,label:"Agent A"}, {x:50,y:75,core:false,label:"Agent B"}, {x:80,y:55,core:false,label:"Agent C"} ],
+    conns: [ {x1:50,y1:20,x2:20,y2:55}, {x1:50,y1:20,x2:50,y2:75}, {x1:50,y1:20,x2:80,y2:55} ]
+  },
+  {
+    name: "Autonomous Agentic System",
+    risk: "Severe — govern closely",
+    riskColor: "var(--amber)",
+    desc: "<b>Many agents run continuously across an open environment</b> with little to no human checkpoint. Highest capability, highest need for guardrails, tracing, and rollback.",
+    nodes: [ {x:50,y:15,core:true,label:"Orchestr"}, {x:18,y:45,core:false,label:"Agent A"}, {x:50,y:50,core:false,label:"Agent B"}, {x:82,y:45,core:false,label:"Agent C"}, {x:30,y:82,core:false,label:"Tool"}, {x:70,y:82,core:false,label:"Tool"} ],
+    conns: [ {x1:50,y1:15,x2:18,y2:45}, {x1:50,y1:15,x2:50,y2:50}, {x1:50,y1:15,x2:82,y2:45}, {x1:18,y1:45,x2:30,y2:82}, {x1:82,y1:45,x2:70,y2:82} ]
+  }
+];
+
+const stage = document.getElementById('ladderStage');
+const slider = document.getElementById('ladderSlider');
+const lvlNum = document.getElementById('lvlNum');
+const lvlName = document.getElementById('lvlName');
+const lvlRisk = document.getElementById('lvlRisk');
+const lvlDesc = document.getElementById('lvlDesc');
+const ticks = document.querySelectorAll('.slider-ticks span');
+
+function renderLadder(levelIndex){
+  const lvl = levels[levelIndex];
+  stage.innerHTML = "";
+
+  // connections first (so nodes sit on top)
+  lvl.conns.forEach(c=>{
+    const dx = (c.x2 - c.x1) * stage.clientWidth / 100;
+    const dy = (c.y2 - c.y1) * stage.clientHeight / 100;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const line = document.createElement('div');
+    line.className = 'lconn';
+    line.style.left = c.x1 + '%';
+    line.style.top = c.y1 + '%';
+    line.style.width = len + 'px';
+    line.style.transform = `rotate(${angle}deg)`;
+    stage.appendChild(line);
+  });
+
+  lvl.nodes.forEach(n=>{
+    const node = document.createElement('div');
+    node.className = 'lnode' + (n.core ? ' core' : '');
+    node.style.left = `${n.x}%`;
+    node.style.top = `calc(${n.y}% - 27px)`;
+    node.textContent = n.label;
+    stage.appendChild(node);
+  });
+
+  lvlNum.textContent = levelIndex + 1;
+  lvlName.textContent = lvl.name;
+  lvlName.style.color = levelIndex >= 2 ? 'var(--amber)' : 'var(--cyan)';
+  lvlRisk.textContent = lvl.risk;
+  lvlRisk.style.color = lvl.riskColor;
+  lvlDesc.innerHTML = lvl.desc;
+
+  ticks.forEach((t,i)=> t.classList.toggle('active', i === levelIndex));
+}
+
+slider.addEventListener('input', ()=> renderLadder(parseInt(slider.value,10) - 1));
+ticks.forEach((t,i)=>{
+  t.addEventListener('click', ()=>{ slider.value = i+1; renderLadder(i); });
+});
+window.addEventListener('resize', ()=> renderLadder(parseInt(slider.value,10) - 1));
+renderLadder(0);
+
+/* ============================================================
+   PATTERN TABS
+   ============================================================ */
+document.querySelectorAll('.ptab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.pattern-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============================================================
+   ACCORDION
+   ============================================================ */
+document.querySelectorAll('.acc-head').forEach(head=>{
+  head.addEventListener('click', ()=>{
+    head.parentElement.classList.toggle('open');
+  });
+});
+
+/* ============================================================
+   VIDEO FILTER
+   ============================================================ */
+document.querySelectorAll('.vf-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.vf-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.vcard').forEach(card=>{
+      const show = filter === 'all' || card.dataset.cat === filter;
+      card.style.display = show ? 'flex' : 'none';
+    });
+  });
+});
+
+/* ============================================================
+   GLOSSARY SEARCH
+   ============================================================ */
+const gSearch = document.getElementById('glossarySearch');
+gSearch.addEventListener('input', ()=>{
+  const q = gSearch.value.trim().toLowerCase();
+  document.querySelectorAll('.gterm').forEach(term=>{
+    const text = term.textContent.toLowerCase();
+    term.classList.toggle('hide', q.length > 0 && !text.includes(q));
+  });
+});
+</script>
+
+</body>
+</html>
